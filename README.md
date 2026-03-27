@@ -11,7 +11,7 @@ How to run the project
 
 ## Contributors
 Tejas
-Tanish
+Tanish THE GOAT
 Farhaan
 Suraj
 ## Timeline / Milestones
