@@ -1,2 +1,18 @@
-# DynamicPricing
-Automating retail profitability through real-time computer vision and predictive analytics. Scanning real products in real time and comparing competitor pricing, and applies a machine learning  model to calculate the optimal price based on stock levels and expiry dates
+# Dynamic Pricing Project
+
+## Description
+Helps to clear old stock 
+
+## Tech Stack
+- Python / OpenCV / EasyOCR / BeautifulSoup / Pandas / Scikit-Learn / Streamlit
+
+## Setup Instructions
+How to run the project
+
+## Contributors
+Tejas
+Tanish
+Farhaan
+Suraj
+## Timeline / Milestones
+(optional but powerful)
