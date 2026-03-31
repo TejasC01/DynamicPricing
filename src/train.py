@@ -7,6 +7,9 @@ from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 
+from data_generation import generate_data
+from preprocessing import preprocess
+
 
 # ------------------------------
 # PATH SETUP
@@ -19,14 +22,9 @@ MODELS_PATH = os.path.join(BASE_DIR, "models")
 # LOAD DATA
 # ------------------------------
 def load_data():
-    X_train = joblib.load(os.path.join(MODELS_PATH, "X_train.pkl"))
-    X_test = joblib.load(os.path.join(MODELS_PATH, "X_test.pkl"))
-    y_train = joblib.load(os.path.join(MODELS_PATH, "y_train.pkl"))
-    y_test = joblib.load(os.path.join(MODELS_PATH, "y_test.pkl"))
-
-    feature_names = joblib.load(os.path.join(MODELS_PATH, "feature_names.pkl"))
-
-    return X_train, X_test, y_train, y_test, feature_names
+    print("Generating + preprocessing data...")
+    df = generate_data(save=False)
+    return preprocess(df)
 
 
 # ------------------------------
@@ -46,8 +44,8 @@ def evaluate(y_true, y_pred, name):
 # ------------------------------
 def main():
     print("Loading data...")
-    X_train, X_test, y_train, y_test, feature_names = load_data()
-    print("Data loaded!")
+    X_train, X_test, y_train, y_test, scaler, feature_names = load_data()
+    print("Data ready!")
 
     # ---- Linear Regression ----
     print("\nTraining Linear Regression...")
@@ -64,7 +62,7 @@ def main():
     evaluate(y_test, y_pred_rf, "Random Forest")
 
     # ------------------------------
-    # FEATURE IMPORTANCE (FIXED)
+    # FEATURE IMPORTANCE
     # ------------------------------
     print("\nFeature Importance:")
 
@@ -78,11 +76,15 @@ def main():
     print(df_imp)
 
     # ------------------------------
-    # SAVE MODELS
+    # SAVE MODEL + SCALER
     # ------------------------------
-    joblib.dump(rf, os.path.join(MODELS_PATH, "final_model.pkl"))
+    os.makedirs(MODELS_PATH, exist_ok=True)
 
-    print("\n✅ Final model saved!")
+    joblib.dump(rf, os.path.join(MODELS_PATH, "final_model.pkl"))
+    joblib.dump(scaler, os.path.join(MODELS_PATH, "scaler.pkl"))
+    joblib.dump(feature_names, os.path.join(MODELS_PATH, "feature_names.pkl"))
+
+    print("\n✅ Model + scaler + features saved!")
 
 
 if __name__ == "__main__":
