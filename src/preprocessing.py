@@ -1,123 +1,76 @@
 import pandas as pd
+import os
+import joblib
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-import joblib
-import os
 
 
 # ------------------------------
-# 1. LOAD DATA
+# PATH SETUP
 # ------------------------------
-# Read the dataset from the data folder
-df = pd.read_csv("../data/demand_data.csv")
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# Preview first few rows → sanity check
+DATA_PATH = os.path.join(BASE_DIR, "data", "demand_data.csv")
+MODELS_PATH = os.path.join(BASE_DIR, "models")
+
+os.makedirs(MODELS_PATH, exist_ok=True)
+
+
+# ------------------------------
+# LOAD DATA
+# ------------------------------
+df = pd.read_csv(DATA_PATH)
+
 print("Sample Data:\n", df.head())
 
-# Check structure → data types + null values
-print("\nData Info:")
-print(df.info())
 
 # ------------------------------
-# 2. HANDLE MISSING VALUES
+# FEATURE ENGINEERING (IMPORTANT)
 # ------------------------------
-# Count missing values in each column
-print("\nMissing Values:\n", df.isnull().sum())
+df["is_expiring_soon"] = (df["days_to_expiry"] < 3).astype(int)
 
-# NOTE:
-# Your dataset currently has no missing values.
-# But in real-world data, you would fill or drop them here.
+# Drop useless feature
+df = df.drop("product_id", axis=1)
 
 
 # ------------------------------
-# 3. ENCODE CATEGORICAL VARIABLES
+# ENCODE CATEGORICAL
 # ------------------------------
-# 'day_of_week' is categorical (even if numeric)
-# Convert it into one-hot encoded columns
-
 df = pd.get_dummies(df, columns=["day_of_week"], drop_first=True)
 
-# WHY drop_first=True?
-# Avoids redundancy → prevents multicollinearity in linear models
-
 
 # ------------------------------
-# 4. FEATURE-TARGET SPLIT
+# SPLIT
 # ------------------------------
-# X = input features
-# y = target variable (what we want to predict)
-
 X = df.drop("units_sold", axis=1)
 y = df["units_sold"]
-
-
-# ------------------------------
-# 5. TRAIN-TEST SPLIT
-# ------------------------------
-# Split data into:
-# 80% training → model learns from this
-# 20% testing → model is evaluated on this
 
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42
 )
 
-# random_state ensures same split every time (reproducibility)
-
 
 # ------------------------------
-# 6. FEATURE SCALING
+# SCALING
 # ------------------------------
-# Standardize features → mean=0, std=1
-# Important for Linear Regression
-
 scaler = StandardScaler()
 
-# Fit ONLY on training data → learn scaling parameters
 X_train_scaled = scaler.fit_transform(X_train)
-
-# Apply SAME transformation to test data
 X_test_scaled = scaler.transform(X_test)
 
-# IMPORTANT:
-# Never fit on test data → causes data leakage
-
 
 # ------------------------------
-# 7. DEBUG / SANITY CHECKS
+# SAVE EVERYTHING
 # ------------------------------
+joblib.dump(scaler, os.path.join(MODELS_PATH, "scaler.pkl"))
 
-# Check dataset sizes
-print("\nTrain shape:", X_train.shape)
-print("Test shape:", X_test.shape)
+joblib.dump(X_train_scaled, os.path.join(MODELS_PATH, "X_train.pkl"))
+joblib.dump(X_test_scaled, os.path.join(MODELS_PATH, "X_test.pkl"))
 
-# Check final feature columns
-print("\nFeature Columns:\n", X.columns)
+joblib.dump(y_train, os.path.join(MODELS_PATH, "y_train.pkl"))
+joblib.dump(y_test, os.path.join(MODELS_PATH, "y_test.pkl"))
 
-# Check number of features
-print("\nNumber of features:", X.shape[1])
+# ✅ Save feature names (CRITICAL FIX)
+joblib.dump(list(X.columns), os.path.join(MODELS_PATH, "feature_names.pkl"))
 
-# Check scaled data sample
-print("\nScaled Train Sample:\n", X_train_scaled[:2])
-
-
-# ------------------------------
-# 8. SAVE ARTIFACTS (CRITICAL)
-# ------------------------------
-# Create models folder if it doesn't exist
-os.makedirs("../models", exist_ok=True)
-
-# Save scaler → needed during inference
-joblib.dump(scaler, "../models/scaler.pkl")
-
-# Save processed datasets → avoids recomputation later
-joblib.dump(X_train, "../models/X_train.pkl")
-joblib.dump(X_test, "../models/X_test.pkl")
-joblib.dump(y_train, "../models/y_train.pkl")
-joblib.dump(y_test, "../models/y_test.pkl")
-
-
-# ------------------------------
-# FINAL MESSAGE
-# ------------------------------
-print("\nPreprocessing completed successfully.")
+print("\n✅ Preprocessing complete.")
