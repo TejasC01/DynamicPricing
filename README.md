@@ -7,7 +7,7 @@ Tool that scans products in inventory as input and compares competitor pricing ,
 - Python / OpenCV / EasyOCR / BeautifulSoup / Pandas / Scikit-Learn / Streamlit
 
 ## Setup Instructions
-How to run the project
+Run the train script to run the ML model, it will generate the data csv and models.
 
 ## Contributors
 Tejas
