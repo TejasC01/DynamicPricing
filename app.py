@@ -1,4 +1,5 @@
 import streamlit as st
+from src.inference import predict_demand
 
 # Set page config
 st.set_page_config(page_title="Dynamic Pricing Project", layout="wide")
@@ -21,7 +22,8 @@ col1, col2 = st.columns(2)
 with col1:
     st.subheader("Prediction Results")
     # This is a placeholder for the ML Engineer's model output later
-    st.metric(label="Predicted Units Sold", value="Calculating...", delta="Pending ML Model")
+    prediction = predict_demand(price, stock, expiry, day)
+    st.metric(label="Predicted Units Sold", value=round(prediction, 2))
 
 with col2:
     st.subheader("Data Visualization")
