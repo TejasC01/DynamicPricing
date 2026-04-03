@@ -83,6 +83,7 @@ def main():
     print(f"\n✅ Best Model: {model_name}")
 
     # ------------------------------
+    # SAVE (CRITICAL FIX)
     # FEATURE IMPORTANCE
     # ------------------------------
     if model_name == "Random Forest":
@@ -98,6 +99,10 @@ def main():
     os.makedirs(MODELS_PATH, exist_ok=True)
 
     joblib.dump(best_model, os.path.join(MODELS_PATH, "final_model.pkl"))
+    joblib.dump(scaler, os.path.join(MODELS_PATH, "scaler.pkl"))
+    joblib.dump(feature_names, os.path.join(MODELS_PATH, "feature_names.pkl"))
+
+    print("\n✅ Model, scaler, and feature names saved!")
     joblib.dump(X_test, os.path.join(MODELS_PATH, "X_test.pkl"))
     joblib.dump(y_test, os.path.join(MODELS_PATH, "y_test.pkl"))
 
