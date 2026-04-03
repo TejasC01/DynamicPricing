@@ -1,19 +1,30 @@
-import pickle
+import joblib
 import pandas as pd
+import os
 
-# Load once (not inside function repeatedly)
-with open("models/final_model.pkl", "rb") as f:
-    model = pickle.load(f)
+# ------------------------------
+# PATH SETUP
+# ------------------------------
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-with open("models/scaler.pkl", "rb") as f:
-    scaler = pickle.load(f)
+model_path = os.path.join(BASE_DIR, "models", "final_model.pkl")
+scaler_path = os.path.join(BASE_DIR, "models", "scaler.pkl")
+features_path = os.path.join(BASE_DIR, "models", "feature_names.pkl")
 
-with open("models/feature_names.pkl", "rb") as f:
-    feature_names = pickle.load(f)
+print("Loading model from:", model_path)
+
+# ------------------------------
+# LOAD ARTIFACTS (FIXED)
+# ------------------------------
+model = joblib.load(model_path)
+scaler = joblib.load(scaler_path)
+feature_names = joblib.load(features_path)
 
 
+# ------------------------------
+# PREDICTION FUNCTION
+# ------------------------------
 def predict_demand(price, stock, expiry, day):
-    # Convert day to numeric (example)
     day_mapping = {
         "Monday": 0, "Tuesday": 1, "Wednesday": 2,
         "Thursday": 3, "Friday": 4, "Saturday": 5, "Sunday": 6
@@ -21,7 +32,6 @@ def predict_demand(price, stock, expiry, day):
 
     day_encoded = day_mapping[day]
 
-    # Create input dataframe EXACTLY like training
     input_data = pd.DataFrame([{
         "price": price,
         "stock_level": stock,
@@ -29,10 +39,10 @@ def predict_demand(price, stock, expiry, day):
         "day_of_week": day_encoded
     }])
 
-    # Ensure column order matches training
+    # Ensure correct feature order
     input_data = input_data[feature_names]
 
-    # Scale if needed
+    # Scale
     input_scaled = scaler.transform(input_data)
 
     # Predict
