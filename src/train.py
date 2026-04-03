@@ -84,6 +84,17 @@ def main():
 
     # ------------------------------
     # SAVE (CRITICAL FIX)
+    # FEATURE IMPORTANCE
+    # ------------------------------
+    if model_name == "Random Forest":
+        print("\nFeature Importance:")
+        importance = rf.feature_importances_
+
+        for name, val in sorted(zip(feature_names, importance), key=lambda x: x[1], reverse=True):
+            print(f"{name}: {val:.4f}")
+
+    # ------------------------------
+    # SAVE
     # ------------------------------
     os.makedirs(MODELS_PATH, exist_ok=True)
 
@@ -92,6 +103,10 @@ def main():
     joblib.dump(feature_names, os.path.join(MODELS_PATH, "feature_names.pkl"))
 
     print("\n✅ Model, scaler, and feature names saved!")
+    joblib.dump(X_test, os.path.join(MODELS_PATH, "X_test.pkl"))
+    joblib.dump(y_test, os.path.join(MODELS_PATH, "y_test.pkl"))
+
+    print("\n✅ Model saved!")
 
 
 if __name__ == "__main__":
