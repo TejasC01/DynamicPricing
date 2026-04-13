@@ -11,17 +11,26 @@ from data_generation import generate_data
 from preprocessing import preprocess
 
 
+# ------------------------------
+# PATHS
+# ------------------------------
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_PATH = os.path.join(BASE_DIR, "data", "demand_data.csv")
 MODELS_PATH = os.path.join(BASE_DIR, "models")
 
 
+# ------------------------------
+# EVALUATION FUNCTION
+# ------------------------------
 def evaluate(y_true, y_pred):
     mae = mean_absolute_error(y_true, y_pred)
     rmse = np.sqrt(mean_squared_error(y_true, y_pred))
     return mae, rmse
 
 
+# ------------------------------
+# LOAD OR GENERATE DATA
+# ------------------------------
 def load_or_generate_data():
     if os.path.exists(DATA_PATH):
         print("Loading existing data...")
@@ -31,9 +40,14 @@ def load_or_generate_data():
         return generate_data(save=True)
 
 
+# ------------------------------
+# MAIN TRAINING PIPELINE
+# ------------------------------
 def main():
+    # Step 1: Load data
     df = load_or_generate_data()
 
+    # Step 2: Preprocess
     print("Preprocessing data...")
     X_train, X_test, y_train, y_test, scaler, feature_names = preprocess(df, save=True)
 
@@ -43,13 +57,13 @@ def main():
     print("\nTraining Linear Regression...")
     lr = LinearRegression()
     lr.fit(X_train, y_train)
-    y_pred_lr = lr.predict(X_test)
 
+    y_pred_lr = lr.predict(X_test)
     mae_lr, rmse_lr = evaluate(y_test, y_pred_lr)
 
-    print("Linear Regression")
-    print("MAE:", mae_lr)
-    print("RMSE:", rmse_lr)
+    print("\nLinear Regression Results")
+    print(f"MAE: {mae_lr:.4f}")
+    print(f"RMSE: {rmse_lr:.4f}")
 
     # ------------------------------
     # RANDOM FOREST
@@ -62,13 +76,13 @@ def main():
         random_state=42
     )
     rf.fit(X_train, y_train)
-    y_pred_rf = rf.predict(X_test)
 
+    y_pred_rf = rf.predict(X_test)
     mae_rf, rmse_rf = evaluate(y_test, y_pred_rf)
 
-    print("Random Forest")
-    print("MAE:", mae_rf)
-    print("RMSE:", rmse_rf)
+    print("\nRandom Forest Results")
+    print(f"MAE: {mae_rf:.4f}")
+    print(f"RMSE: {rmse_rf:.4f}")
 
     # ------------------------------
     # SELECT BEST MODEL
@@ -80,29 +94,41 @@ def main():
         best_model = lr
         model_name = "Linear Regression"
 
-    print(f"\n✅ Best Model: {model_name}")
+    print(f"\n✅ Best Model Selected: {model_name}")
 
     # ------------------------------
-    # FEATURE IMPORTANCE
+    # FEATURE IMPORTANCE (RF ONLY)
     # ------------------------------
     if model_name == "Random Forest":
         print("\nFeature Importance:")
         importance = rf.feature_importances_
 
-        for name, val in sorted(zip(feature_names, importance), key=lambda x: x[1], reverse=True):
+        sorted_features = sorted(
+            zip(feature_names, importance),
+            key=lambda x: x[1],
+            reverse=True
+        )
+
+        for name, val in sorted_features:
             print(f"{name}: {val:.4f}")
 
     # ------------------------------
-    # SAVE
+    # SAVE EVERYTHING (CRITICAL)
     # ------------------------------
     os.makedirs(MODELS_PATH, exist_ok=True)
 
     joblib.dump(best_model, os.path.join(MODELS_PATH, "final_model.pkl"))
+    joblib.dump(scaler, os.path.join(MODELS_PATH, "scaler.pkl"))
+    joblib.dump(feature_names, os.path.join(MODELS_PATH, "feature_names.pkl"))
     joblib.dump(X_test, os.path.join(MODELS_PATH, "X_test.pkl"))
     joblib.dump(y_test, os.path.join(MODELS_PATH, "y_test.pkl"))
 
-    print("\n✅ Model saved!")
+    print("\n✅ All artifacts saved successfully!")
+    print(f"📁 Location: {MODELS_PATH}")
 
 
+# ------------------------------
+# ENTRY POINT
+# ------------------------------
 if __name__ == "__main__":
     main()
